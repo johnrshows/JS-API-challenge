@@ -1,6 +1,6 @@
 // define json file path
 
-var url = `/static/js/samples.json`;
+var url = `https://johnrshows.github.io/JS-API-challenge/static/js/samples.json`;
 
 //// horizontal bar and bubble graph functions////
 
