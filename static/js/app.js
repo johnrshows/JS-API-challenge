@@ -1,93 +1,89 @@
-// // define json path
+// define json file path
+
 var url = `/static/js/samples.json`;
 
 //// horizontal bar and bubble graph functions////
 
-//pull data
+// create function to populate graphs with selected sample
+
 function build_charts(sample) {
-//   if (!sample) {
-//     throw new Error(`No sample given`);
-//   }
-//   console.log(sample);
-//   var sample_data;
-    d3.json(url).then((data) => {
-//     console.log(data);
-//     sample_data = data.samples.filter((row) => {
-//       console.log(row);
-//       return row.id === sample;
-//     });
+  d3.json(url).then((data) => {
+    for (var x = 0; x < data.samples.length; x++) {
+      console.log(data.samples);
+      if (data.samples[x].id == sample) {
+        console.log(sample);
+        var sample_data = data.samples[x];
+      }
+    }
+    
+    //pull arrays and reassign variable names
 
-//     console.log(`Expected Sample`, sample_data);
-//     console.log(data);
+    var sample_values = sample_data.sample_values;
+    var otu_ids = sample_data.otu_ids;
+    var otu_labels = sample_data.otu_labels;
+    console.log(otu_labels);
 
-        for (var x = 0; x < data.samples.length; x++) {
-          console.log(data.samples);
-          if (data.samples[x].id == sample) {
-            console.log(sample);
-            var sample_data = data.samples[x]
-          }
-        };
+    //slice for bar graph to get top 10 OTU's
 
-    // if (!sample_data) throw new Error(`There was no sample data`);
+    var x_data = sample_values.slice(0, 10).reverse();
+    console.log(x_data);
+    var y_data = otu_ids
+      .slice(0, 10)
+      .reverse()
+      .map((object) => `OTU ${object}`);
+    var hover_text = otu_labels.slice(0, 10).reverse();
 
-    //         //pull values from sample data
-        var sample_values = sample_data.sample_values;
-        var otu_ids = sample_data.otu_ids;
-        var otu_labels = sample_data.otu_labels;
-        console.log(otu_labels);
+    // bar graph //
 
-    //         //slice for bar graph to get top 10 OTU's
+    var bar_graph = [
+      {
+        x: x_data,
+        y: y_data,
+        text: hover_text,
+        type: "bar",
+        orientation: "h",
+      },
+    ];
 
-        var x_data = sample_values.slice(0, 10).reverse();
-        console.log(x_data);
-        var y_data = otu_ids
-        .slice(0, 10)
-        .reverse()
-        .map((object) => `OTU ${object}`);
-        var hover_text = otu_labels.slice(0, 10).reverse();
+    // format bar graph //
 
-    // bar graph
+    var bar_format = {
+      title: `Top 10 OTU's in Sample ${sample}`,
+    };
 
-        var bar_graph = [
-        {
-            x: x_data,
-            y: y_data,
-            text: hover_text,
-            type: "bar",
-            orientation: "h",
-        }];
-        
-        var bar_format = {
-            title: `Top 10 OTU's in Sample ${sample}`,
-        }
+    // plot bar graph //
 
-        Plotly.newPlot("bar", bar_graph, bar_format, {responsive: true});
+    Plotly.newPlot("bar", bar_graph, bar_format, { responsive: true });
 
-    //         // bubble chart
+    // bubble chart//
 
-        var bubble_graph = [
-        {
-            x: otu_ids,
-            y: sample_values,
-            text: otu_labels,
-            mode: "markers",
-            marker: {
-            size: sample_values,
-            color: otu_ids,
-        }
-      }];
- 
+    var bubble_graph = [
+      {
+        x: otu_ids,
+        y: sample_values,
+        text: otu_labels,
+        mode: "markers",
+        marker: {
+          size: sample_values,
+          color: otu_ids,
+        },
+      },
+    ];
+
+    //format bubble chart //
 
     var bubble_format = {
-        title: `All Bacteria in Sample ${sample} &  their Frequency`,
-        xaxis: { title: "OTU ID" },
-        yaxis: { title: "Frequency" },
+      title: `All Bacteria in Sample ${sample} &  their Frequency`,
+      xaxis: { title: "OTU ID" },
+      yaxis: { title: "Frequency" },
     };
-  Plotly.newPlot("bubble", bubble_graph, bubble_format, {responsive: true});
-    
-    });
+    Plotly.newPlot("bubble", bubble_graph, bubble_format, { responsive: true });
+  });
 }
-// metadata panel
+
+//// build metadata panel ////
+
+//get metadata sample 
 
 function build_metadata(sample) {
   d3.json(url).then(function (data) {
@@ -96,32 +92,41 @@ function build_metadata(sample) {
         var sample_data = data.metadata[x];
       }
     };
-    var metadata_box = d3.select("tbody");
-    var tb = document.querySelector("tbody");
+    var metadata_box = d3.select('tbody');
+    var tb = document.querySelector('tbody');
     while (tb.childNodes.length) {
       tb.removeChild(tb.childNodes[0]);
     }
     Object.defineProperties(sample_data).forEach(([key, value]) => {
-      var row = metadata_box.append("tr");
-      var cell = row.append("td");
+      var row = metadata_box.append('tr');
+      var cell = row.append('td');
       cell.text(`${key}: ${value}`);
     });
   });
 }
+
+//init page function
+
 function init() {
-  var dropdown = d3.select("#selDataset");
+  // select and build dropdown menu
+  var dropdown = d3.select('#selDataset');
   d3.json(url).then((data) => {
     data.names.forEach((name) => {
-      dropdown.append('option').text(name).property("value");
+      dropdown.append("option").text(name).property("value");
     });
   });
 
   build_charts("940");
   build_metadata("940");
 }
+
+//populate new inputs
+
 function optionChanged(id) {
   build_charts(id);
   build_metadata(id);
 }
+
+//initialize 
 
 init();
